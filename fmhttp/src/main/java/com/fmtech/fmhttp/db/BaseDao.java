@@ -5,8 +5,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 
-import com.fmtech.fmlite.annotation.DatabaseField;
-import com.fmtech.fmlite.annotation.DatabaseTable;
+import com.fmtech.fmhttp.annotation.DatabaseField;
+import com.fmtech.fmhttp.annotation.DatabaseTable;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.Set;
 
 public abstract class BaseDao<T> implements IBaseDao<T>{
 
-    private SQLiteDatabase mSQLiteDatabase;
+    protected SQLiteDatabase mSQLiteDatabase;
     private boolean isInited = false;
     private Class<T> mEnityClass;
 
@@ -281,4 +281,9 @@ public abstract class BaseDao<T> implements IBaseDao<T>{
             return whereArgs;
         }
     }
+
+    protected String getTableName(){
+        return mTableName;
+    }
+
 }

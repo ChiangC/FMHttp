@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.fmtech.fmhttp.http.interfaces.IHttpService;
 
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.FutureTask;
 
 /**
  * ==================================================================
@@ -19,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 public class HttpTask<T> implements Runnable{
 
     private IHttpService mHttpService;
+    private FutureTask mFutureTask;
 
     public HttpTask(RequestHodler<T> requestHodler){
         mHttpService = requestHodler.getHttpService();
@@ -37,6 +39,22 @@ public class HttpTask<T> implements Runnable{
     @Override
     public void run() {
         mHttpService.excute();
+    }
+
+    public void start(){
+        mFutureTask = new FutureTask(this, null);
+        try {
+            ThreadPoolManager.getInstance().excute(mFutureTask);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void pause(){
+        mHttpService.pause();
+        if(null != mFutureTask){
+            ThreadPoolManager.getInstance().removeTask(mFutureTask);
+        }
     }
 
 }

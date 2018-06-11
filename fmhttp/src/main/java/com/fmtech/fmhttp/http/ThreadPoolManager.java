@@ -68,4 +68,14 @@ public class ThreadPoolManager {
         mTaskQueue.put(futureTask);
     }
 
+    public <T> boolean removeTask(FutureTask futureTask){
+        boolean result = false;
+        if(mTaskQueue.contains(futureTask)){
+            mTaskQueue.remove(futureTask);
+        }else{
+            result = mThreadPoolExecutor.remove(futureTask);
+        }
+        return result;
+    }
+
 }

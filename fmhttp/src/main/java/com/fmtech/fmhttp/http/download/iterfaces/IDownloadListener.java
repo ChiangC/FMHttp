@@ -1,6 +1,7 @@
 package com.fmtech.fmhttp.http.download.iterfaces;
 
 import com.fmtech.fmhttp.http.interfaces.IHttpListener;
+import com.fmtech.fmhttp.http.interfaces.IHttpService;
 
 /**
  * ==================================================================
@@ -14,5 +15,10 @@ import com.fmtech.fmhttp.http.interfaces.IHttpListener;
  */
 
 public interface IDownloadListener extends IHttpListener{
+    void setHttpService(IHttpService httpService);
+
+    void setCancelCallable();
+
+    void setPauseCallable();
 
 }
