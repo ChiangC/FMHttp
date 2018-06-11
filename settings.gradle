@@ -1,1 +1,1 @@
-include ':app', ':fmhttp'
+include ':app', ':fmhttp', ':fmlite'

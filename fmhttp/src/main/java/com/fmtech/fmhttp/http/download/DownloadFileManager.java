@@ -1,8 +1,4 @@
-package com.fmtech.fmhttp.http.interfaces;
-
-import org.apache.http.HttpEntity;
-
-import java.util.Map;
+package com.fmtech.fmhttp.http.download;
 
 /**
  * ==================================================================
@@ -15,10 +11,6 @@ import java.util.Map;
  * ==================================================================
  */
 
-public interface IHttpListener {
-    void onSuccess(HttpEntity httpEntity);
+public class DownloadFileManager {
 
-    void onFail();
-
-    void addHttpHeader(Map<String,String> headerMap);
 }

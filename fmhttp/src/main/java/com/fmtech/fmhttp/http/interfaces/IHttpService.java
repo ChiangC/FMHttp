@@ -1,5 +1,7 @@
 package com.fmtech.fmhttp.http.interfaces;
 
+import java.util.Map;
+
 /**
  * ==================================================================
  * Copyright (C) 2018 FMTech All Rights Reserved.
@@ -19,4 +21,15 @@ public interface IHttpService {
     void setHttpListener(IHttpListener listener);
 
     void setRequestData(byte[] requestData);
+
+    void pause();
+
+    boolean cancel();
+
+    boolean isCanceled();
+
+    boolean isPaused();
+
+    Map<String, String> getRequestHeaderMap();
+
 }

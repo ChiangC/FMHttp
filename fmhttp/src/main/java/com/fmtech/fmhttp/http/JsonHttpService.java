@@ -12,6 +12,7 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * ==================================================================
@@ -46,6 +47,31 @@ public class JsonHttpService implements IHttpService{
     @Override
     public void setRequestData(byte[] requestData) {
         mRequestData = requestData;
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public boolean cancel() {
+        return false;
+    }
+
+    @Override
+    public boolean isCanceled() {
+        return false;
+    }
+
+    @Override
+    public boolean isPaused() {
+        return false;
+    }
+
+    @Override
+    public Map<String, String> getRequestHeaderMap() {
+        return null;
     }
 
     @Override

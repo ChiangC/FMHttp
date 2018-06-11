@@ -48,8 +48,8 @@ public class RequestHodler<T> {
         return mRequestInfo;
     }
 
-    public void setRequestInfo(T mRequestInfo) {
-        this.mRequestInfo = mRequestInfo;
+    public void setRequestInfo(T requestInfo) {
+        this.mRequestInfo = requestInfo;
     }
 
 }

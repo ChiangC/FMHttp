@@ -25,6 +25,7 @@ public class FMHttp {
         IHttpService httpService = new JsonHttpService();
         requestHolder.setHttpListener(httpListener);
         requestHolder.setHttpService(httpService);
+        requestHolder.setRequestInfo(requestInfo);
         requestHolder.setUrl(url);
         HttpTask<T> httpTask = new HttpTask<>(requestHolder);
         try {
