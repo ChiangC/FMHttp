@@ -67,7 +67,112 @@ public class DownloadManager implements IDownloadServiceCallable {
         File file = new File(filePath);
         DownloadItemInfo downloadItemInfo = mDownloadDao.findRecord(url, filePath);
         if(null == downloadItemInfo){
+            List<DownloadItemInfo> records = mDownloadDao.findRecord(filePath);
+            if(records.size() > 0){
+                DownloadItemInfo record = records.get(0);
+                if(record.getCurrentLen() == record.getTotalLen()){
+                    synchronized (mAppListeners){
+                        for(IDownloadCallable downloadCallable:mAppListeners){
+                            downloadCallable.onDownloadError(record.getId(), 2, "Has been downloaded.");
+                        }
+                    }
+                }
+            }
 
+            int recordId = mDownloadDao.addRecord(url, filePath, displayName, priority.getValue());
+            if(recordId != -1){
+                synchronized (mAppListeners){
+                    for(IDownloadCallable downloadCallable:mAppListeners){
+                        downloadCallable.onDownloadInfoAdd(downloadItemInfo.getId());
+                    }
+                }
+            }else{
+                downloadItemInfo = mDownloadDao.findRecord(url, filePath);
+            }
+
+            if(isDownloading(file.getAbsolutePath())){
+                synchronized (mAppListeners){
+                    for(IDownloadCallable downloadCallable:mAppListeners){
+                        downloadCallable.onDownloadError(downloadItemInfo.getId(), 4, "Download task is in proccess.");
+                    }
+                }
+                return downloadItemInfo.getId();
+            }
+
+            if(null != downloadItemInfo){
+                downloadItemInfo.setPriority(priority.getValue());
+                downloadItemInfo.setStopMode(DownloadStopMode.AUTO.getValue());
+
+                if(downloadItemInfo.getStatus() != DownloadStatus.finish.getValue()){
+                    if(downloadItemInfo.getTotalLen() == 0L || file.length() == 0L){
+                        downloadItemInfo.setStatus(DownloadStatus.failed.getValue());
+                    }
+
+                    if(downloadItemInfo.getTotalLen() == file.length() && downloadItemInfo.getTotalLen() != 0){
+                        downloadItemInfo.setStatus(DownloadStatus.finish.getValue());
+                        synchronized (mAppListeners){
+                            for(IDownloadCallable downloadCallable:mAppListeners){
+                                try {
+                                    downloadCallable.onDownloadError(downloadItemInfo.getId(), 4, "Already downloaded.");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    if(!file.exists() || (downloadItemInfo.getTotalLen()) != downloadItemInfo.getCurrentLen()){
+                        downloadItemInfo.setStatus(DownloadStatus.failed.getValue());
+                    }
+                }
+
+                mDownloadDao.updateRecord(downloadItemInfo);
+
+                if(downloadItemInfo.getStatus() == DownloadStatus.finish.getValue()){
+                    final int downloadId = downloadItemInfo.getId();
+                    synchronized (mAppListeners){
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                for (IDownloadCallable downloadCallable : mAppListeners) {
+                                    downloadCallable.onDownloadStatusChanged(downloadId, DownloadStatus.finish);
+                                }
+                            }
+                        });
+                    }
+                    mDownloadDao.removeRecordFromMemory(downloadId);
+                    return downloadItemInfo.getId();
+                }
+
+                List<DownloadItemInfo> allDownloadingTask = mDownloadTaskList;
+                if(priority != Priority.HIGH){
+                    for(DownloadItemInfo downloadTask: allDownloadingTask){
+                        downloadTask = mDownloadDao.findSingleRecord(downloadTask.getFilePath());
+                        if(null != downloadTask && downloadTask.getPriority() == Priority.HIGH.getValue()){
+                            if(downloadTask.getFilePath().equals(downloadItemInfo.getFilePath())){
+                                break;
+                            }else{
+                                return downloadItemInfo.getId();
+                            }
+                        }
+                    }
+                }
+
+                reallyDownLoad(downloadItemInfo);
+                if(priority == Priority.HIGH || priority == Priority.MEDIUM){
+                    synchronized (allDownloadingTask){
+                        for(DownloadItemInfo task:allDownloadingTask){
+                            if(!downloadItemInfo.getFilePath().equals(task.getFilePath())){
+                                DownloadItemInfo downloadItemInfo1 = mDownloadDao.findSingleRecord(task.getFilePath());
+                                if(null != downloadItemInfo1){
+                                    pauseTask(downloadItemInfo1.getId(), DownloadStopMode.AUTO);
+                                }
+                            }
+                        }
+                    }
+                    return downloadItemInfo.getId();
+                }
+            }
         }
         return -1;
     }
