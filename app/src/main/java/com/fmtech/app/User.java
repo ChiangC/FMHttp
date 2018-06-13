@@ -1,9 +1,32 @@
 package com.fmtech.app;
 
-public class User {
-    private String name;
+import com.fmtech.fmhttp.annotation.DatabaseTable;
 
-    private String password;
+@DatabaseTable("tb_user")
+public class User {
+
+    public String name;
+
+    public String password;
+
+    public String user_id;
+    public  Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
+    }
 
     public String getName() {
         return name;

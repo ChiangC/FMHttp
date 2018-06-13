@@ -20,5 +20,27 @@
         android:layout_height="50dp"
         android:gravity="center"
         android:onClick="login"
-        android:text="获取网络" />
+        android:text="登录用户" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:onClick="insert"
+        android:text="插入用户照片数据" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:onClick="write"
+        android:text="写入版本信息" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:onClick="update"
+        android:text="升级" />
+
 </LinearLayout>
