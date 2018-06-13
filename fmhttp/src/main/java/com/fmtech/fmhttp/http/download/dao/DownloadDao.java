@@ -5,6 +5,7 @@ import android.database.Cursor;
 import com.fmtech.fmhttp.db.BaseDao;
 import com.fmtech.fmhttp.http.download.DownloadItemInfo;
 import com.fmtech.fmhttp.http.download.enums.DownloadStatus;
+import com.fmtech.fmhttp.http.download.enums.DownloadStopMode;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -166,6 +167,27 @@ public class DownloadDao extends BaseDao<DownloadItemInfo> {
             }
         }
         return result;
+    }
+
+    public List<DownloadItemInfo> findAllAutoCancelRecords(){
+        List<DownloadItemInfo> resultList = new ArrayList<>();
+        synchronized (DownloadDao.class){
+            DownloadItemInfo downloadItemInfo = null;
+            for(int i=0; i< mDownloadItemInfos.size(); i++){
+                downloadItemInfo = mDownloadItemInfos.get(i);
+                if(downloadItemInfo.getStatus() != DownloadStatus.failed.getValue()
+                        && downloadItemInfo.getStopMode()!= DownloadStopMode.AUTO.getValue()
+                        ){
+                    resultList.add(downloadItemInfo);
+                }
+            }
+        }
+
+        if(!resultList.isEmpty()){
+            Collections.sort(resultList, mDownloadItemInfoComparator);
+        }
+
+        return resultList;
     }
 
     class DownloadItemInfoComparator implements Comparator<DownloadItemInfo>{

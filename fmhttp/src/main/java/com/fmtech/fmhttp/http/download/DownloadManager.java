@@ -19,6 +19,8 @@ import com.fmtech.fmhttp.http.interfaces.IHttpService;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -195,7 +197,22 @@ public class DownloadManager implements IDownloadServiceCallable {
 
     @Override
     public void onDownloadSuccess(DownloadItemInfo downloadItemInfo) {
+        DownloadItemInfo downloadInfo = mDownloadDao.findSingleRecord(downloadItemInfo.getFilePath());
+        if(null != downloadInfo){
+            downloadInfo.setCurrentLen(new File(downloadItemInfo.getFilePath()).length());
+            downloadInfo.setFinishTime(mSimpleDateFormat.format(new Date()));
+            downloadInfo.setStopMode(DownloadStopMode.HAND.getValue());
+            downloadInfo.setStatus(DownloadStatus.finish.getValue());
+            mDownloadDao.updateRecord(downloadInfo);
 
+            synchronized (mAppListeners){
+                for(IDownloadCallable downloadCallable:mAppListeners){
+                    downloadCallable.onDownloadSuccess(downloadItemInfo.getId());
+                }
+            }
+
+            resumeAutoCancelItem();
+        }
     }
 
     @Override
@@ -260,6 +277,43 @@ public class DownloadManager implements IDownloadServiceCallable {
         synchronized (mAppListeners){
             mAppListeners.add(downloadCallable);
         }
+    }
+
+    private void resumeAutoCancelItem(){
+        List<DownloadItemInfo> allAutoCancelList = mDownloadDao.findAllAutoCancelRecords();
+        List<DownloadItemInfo> notDownloadingList = new ArrayList<>();
+        for(DownloadItemInfo downloadItemInfo:allAutoCancelList){
+            if(!isDownloading(downloadItemInfo.getFilePath())){
+                notDownloadingList.add(downloadItemInfo);
+            }
+        }
+
+        for(DownloadItemInfo downloadItemInfo:notDownloadingList){
+            if(downloadItemInfo.getPriority() == Priority.HIGH.getValue()){
+                resumeItem(downloadItemInfo.getId(), Priority.HIGH);
+                return;
+            }else if(downloadItemInfo.getPriority() == Priority.MEDIUM.getValue()){
+                resumeItem(downloadItemInfo.getId(), Priority.MEDIUM);
+            }
+        }
+    }
+
+    public void resumeItem(final int downloadId, Priority priority){
+        DownloadItemInfo downloadItemInfo = mDownloadDao.findRecordById(downloadId);
+        if(null == downloadItemInfo){
+            return;
+        }
+
+        if(null == priority){
+            priority = Priority.getInstance(downloadItemInfo.getPriority() == null?
+                    Priority.LOW.getValue():downloadItemInfo.getPriority());
+        }
+
+        File file = new File(downloadItemInfo.getFilePath());
+        downloadItemInfo.setStopMode(DownloadStopMode.AUTO.getValue());
+        mDownloadDao.updateRecord(downloadItemInfo);
+        download(downloadItemInfo.getUrl(), file.getAbsolutePath(), null, priority);
+
     }
 
 }
